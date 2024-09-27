@@ -1,0 +1,129 @@
+{% load static %}
+{% load i18n %}
+{% load rest_framework %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    {% block head %}
+
+      {% block meta %}
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <meta name="robots" content="NONE,NOARCHIVE" />
+      {% endblock %}
+
+      <title>{% block title %}{% if name %}{{ name }} – {% endif %}ODmapper v1.0{% endblock %}</title>
+
+      {% block style %}
+        {% block bootstrap_theme %}
+          <link rel="stylesheet" type="text/css" href="{% static "rest_framework/css/bootstrap.min.css" %}"/>
+          <link rel="stylesheet" type="text/css" href="{% static "rest_framework/css/bootstrap-tweaks.css" %}"/>
+        {% endblock %}
+
+        {% if code_style %}<style>{{ code_style }}</style>{% endif %}
+      {% endblock %}
+
+    {% endblock %}
+  </head>
+
+  {% block body %}
+  <body class="{% block bodyclass %}{% endblock %}">
+
+    <div class="wrapper">
+      {% block navbar %}
+        <div class="navbar navbar-static-top {% block bootstrap_navbar_variant %}navbar-inverse{% endblock %}"
+             role="navigation" aria-label="{% trans "navbar" %}">
+          <div class="container">
+            <span>
+              {% block branding %}
+                <a class='navbar-brand' rel="nofollow" href='/'>
+                    ODmapper - Omics Data Mapping and Harmonizer
+                </a>
+              {% endblock %}
+            </span>
+            <ul class="nav navbar-nav pull-right">
+              {% block userlinks %}
+                {% if user.is_authenticated %}
+                  {% optional_logout request user csrf_token %}
+                {% else %}
+                  {% optional_login request %}
+                {% endif %}
+              {% endblock %}
+            </ul>
+          </div>
+        </div>
+      {% endblock %}
+
+      <div class="container">
+        {% block breadcrumbs %}
+          <ul class="breadcrumb">
+            {% for breadcrumb_name, breadcrumb_url in breadcrumblist %}
+              {% if forloop.last %}
+                <li class="active"><a href="{{ breadcrumb_url }}">{{ breadcrumb_name }}</a></li>
+              {% else %}
+                <li><a href="{{ breadcrumb_url }}">{{ breadcrumb_name }}</a></li>
+              {% endif %}
+            {% empty %}
+                <li><a href="/">Query OMOP Genomic Concept ID</a></li>
+
+            {% endfor %}
+          </ul>
+        {% endblock %}
+
+        <!-- Content -->
+        <div id="content" role="main" aria-label="{% trans "content" %}">
+          {% block content %}
+	           <div>
+                <form action="../" method="get">
+                  {{ form }}
+                  <div class="form-group">
+                     <label>Search Text</label>
+                     <input type="text" id="queryid" name="query_text" class="form-control textinput textInput">
+                  </div>
+
+                  <div class="form-group">
+                        <fieldset>
+                                <label>Type of search:</label>
+                                  <div>
+                                    <input type="radio" id="default" name="type" value="default" align="left" checked />
+                                    <label for="default">Default (concept_id, concept_name, concept_code, concept_synonym)</label>
+                                  </div>
+                                  <div>
+                                    <input type="radio" id="concept_id" name="type" align="left" value="concept_id" />
+                                    <label for="concept_id">Concept ID</label>
+                                  </div>
+                                  <div>
+                                    <input type="radio" id="concept_synonym" name="type" align="left" value="concept_synonym" />
+                                    <label for="concept_synonym">Concept Synonym</label>
+                                  </div>
+                        </fieldset>
+                 </div>
+                  <div class="form-group">
+                      <button type="submit" class="btn btn-primary">Search</button>
+                  </div>
+		</form>
+
+          {% endblock content %}
+        </div><!-- /.content -->
+      </div><!-- /.container -->
+    </div><!-- ./wrapper -->
+
+    {% block script %}
+      <script type="application/json" id="drf_csrf">
+        {
+          "csrfHeaderName": "{{ csrf_header_name|default:'X-CSRFToken' }}",
+          "csrfToken": "{% if request %}{{ csrf_token }}{% endif %}"
+        }
+      </script>
+      <script src="{% static "rest_framework/js/jquery-3.7.1.min.js" %}"></script>
+      <script src="{% static "rest_framework/js/ajax-form.js" %}"></script>
+      <script src="{% static "rest_framework/js/csrf.js" %}"></script>
+      <script src="{% static "rest_framework/js/bootstrap.min.js" %}"></script>
+      <script src="{% static "rest_framework/js/prettify-min.js" %}"></script>
+      <script src="{% static "rest_framework/js/default.js" %}"></script>
+      <script src="{% static "rest_framework/js/load-ajax-form.js" %}"></script>
+    {% endblock %}
+
+  </body>
+  {% endblock %}
+</html>
