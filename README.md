@@ -12,7 +12,7 @@ Please refer to [Common Data Model](https://github.com/OHDSI/CommonDataModel/) f
 #### The Genomic Vocabulary in OMOP CDM
 Two sources of genomic vocabulary are used:
 1. The OMOP Genomic vocabulary which can be downloaded from [ATHENA](https://athena.ohdsi.org/vocabulary/list).
-2. The additional genomic vocabulary which is potentially clinically relevant, we have added together with this package in the folder "[enriched-vocab](https://github.com/biierwint/ODmapper/blob/main/LICENSE)". The additional vocabulary are obtained from:
+2. The additional genomic vocabulary which is potentially clinically relevant, we have added together with this package as [enriched-vocab.tar.gz](./enriched-vocab.tar.gz). The additional vocabulary are obtained from:
     - [ClinGen Resource](https://search.clinicalgenome.org/kb/downloads) which includes variants in Gene-Disease validity as well as Variant Pathogenicity.
     - [SG10K Health Study](https://pubmed.ncbi.nlm.nih.gov/36335097/)
 
