@@ -1,0 +1,65 @@
+services:
+  odmapper-postgres:
+    image: postgres:16-alpine
+    container_name: odmapper-postgres
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "25432:5432"
+    volumes:
+      - odmapper-db:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  odmapper-web:
+    build: .
+    container_name: odmapper
+    ports:
+      - "8000:8000"
+    depends_on:
+      - odmapper-postgres
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DEBUG: ${DEBUG}
+      DJANGO_LOGLEVEL: ${DJANGO_LOGLEVEL}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
+      DATABASE_ENGINE: ${DATABASE_ENGINE}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+    env_file:
+      - .env
+
+  seqrepo-rest-service:
+    # Test: curl http://localhost:5000/seqrepo/1/sequence/refseq:NM_000551.3
+    #image: biocommons/seqrepo-rest-service:0.2.2
+    image: biocommons/seqrepo-rest-service
+    container_name: seqrepo-rest-service
+    volumes:
+      - /usr/local/share/seqrepo/2024-02-20:/usr/local/share/seqrepo/2024-02-20
+    command: seqrepo-rest-service -w /usr/local/share/seqrepo/2024-02-20
+    network_mode: bridge
+    ports:
+      - 5000:5000
+
+  uta:
+    # Test:
+    # psql -XAt postgres://anonymous@localhost/uta -c 'select count(*) from uta_20210129b.transcript'
+    # 314227
+    #image: biocommons/uta:uta_20210129b
+    image: biocommons/uta:uta_20240523b
+    container_name: uta
+    environment:
+      - POSTGRES_PASSWORD=admin1
+    volumes:
+      - uta_vol:/var/lib/postgresql/data
+    ports:
+      - 35432:5432
+volumes:
+  odmapper-db:
+  uta_vol:
+    external: true

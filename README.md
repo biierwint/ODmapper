@@ -2,88 +2,82 @@
 ODmapper is used to map a genomic variant to the OMOP concept_id (particularly OMOP Genomic) through API call based on Django REST framework.
 In a nutshell, a user can use the API to query the "CONCEPT" and "CONCEPT_SYNONYM" of OMOP CDM tables based on the query text (concept_id, concept_synonym, concept_name and concept_code).
 
-To set up ODmapper, the user needs to:
-1. Set up the OMOP CDM database
-2. Install and configure Django REST Framework (DRF)
+ODmapper has been packaged as docker containers.
 
-## Set up the OMOP CDM database
-Please refer to [Common Data Model](https://github.com/OHDSI/CommonDataModel/) for the set up of OMOP CDM database.
+## Setting up seqrepo
+Please follow the instructions here: https://github.com/biocommons/biocommons.seqrepo
+Please ensure that the seqrepo directory is at /usr/local/share/seqrepo/
 
-#### The Genomic Vocabulary in OMOP CDM
-Two sources of genomic vocabulary are used:
-1. The OMOP Genomic vocabulary which can be downloaded from [ATHENA](https://athena.ohdsi.org/vocabulary/list).
-2. The additional genomic vocabulary which is potentially clinically relevant, we have added together with this package as [enriched-vocab.tar.gz](./enriched-vocab.tar.gz). The additional vocabulary are obtained from:
-    - [ClinGen Resource](https://search.clinicalgenome.org/kb/downloads) which includes variants in Gene-Disease validity as well as Variant Pathogenicity.
-    - [SG10K Health Study](https://pubmed.ncbi.nlm.nih.gov/36335097/)
-
-## Setup Django REST Framework
-Let's clone the repository:
-```
-git clone https://github.com/biierwint/ODmapper.git
-```
-Navigate to folder "ODmapper"
-```
-cd ODmapper/
-```
-Create virtual environment
-```
-python3 -m venv odmapperenv
-```
-Activate virtual environment
-```
-source odmapperenv/bin/activate
-```
-Install packages
-```
-pip install -r requirements.txt
-```
-
-#### Create project "odmapper_api" and app "odmapper"
-Create project
-```
-django-admin startproject odmapper_api
-```
-Change directory to "odmapper_api"
+## Setting up ODmapper and the supporting docker instances
+### Step 1: Navigate to odmapper_api/ folder
 ```
 cd odmapper_api/
 ```
-Create odmapper app
-```
-python manage.py startapp odmapper
-```
-Configure Django (odmapper_api/settings.py)
-- Note: we provide settings.py.example (source/odmapper_api/settings.py.example) for reference
 
+### Step 2: Run docker compose
+Copy the .env.example file to .env file. Subsequently, please edit .env file to suit your system.
+If your deployment is not in the local server, please ensure that you modify the "DJANGO_ALLOWED_HOSTS" in the ".env" file.
 
-#### Collect static files
-Please ensure that you have configure Django accordingly in the settings.py file (i.e. configure the STATIC_URL and STATIC_ROOT). If you set "DEBUG = True", then you can skip this section. Otherwise, please run collectstatic files accordingly.
+Run:
 ```
-python manage.py collectstatic
+source .env
 ```
 
-#### Copy source file to odmapper/ folder
-Please make sure you are in the "ODmapper" folder.
-Copy the files inside "source/odmapper/" to your project's app.
+Then run docker compose:
 ```
-cp -R source/odmapper/* odmapper_api/odmapper/
-```
-Copy the files inside "source/odmapper_api/" to your project's main folder (odmapper_api/odmapper_api/)
-```
-cp source/odmapper_api/urls.py odmapper_api/odmapper_api/
+docker compose up --build
 ```
 
-#### Authentication
-If you would like the API to be callable by authenticated user, you can start by creating super-user:
-Change directory to project folder: odmapper_api/
+### Step 3: Setting up database
+In a separate terminal, navigate to the "ODmapper" folder.
+Then execute below commands:
 ```
-cd odmapper_api/
-python manage.py createsuperuser
+gunzip -c database-setup.sql.gz | docker exec -i odmapper_api-odmapper-postgres-1 psql -U postgres
+gunzip -c odmapper_database_dump.sql.gz | docker exec -i odmapper_api-odmapper-postgres-1 psql -U postgres -d odmapper
 ```
-Subsequently, please modify the file "odmapper/views.py" by **uncommenting** the section `permission_classes = [permissions.IsAuthenticated]`
 
-#### Create initial migrations for database tables
-[Note: This assumes that you have set up your OMOP CDM tables for concept and concept_synonym accordingly]
+### Step 4: Create initial migrations for database tables
 ```
-python manage.py makemigrations
-python manage.py migrate
+docker exec -i odmapper python manage.py makemigrations
+docker exec -i odmapper python manage.py migrate
+```
+
+### Step 5: Create superuser
+```
+docker exec -it odmapper python manage.py createsuperuser
+(Key-in your username, password, and email address accordingly)
+```
+
+### Step 6: Test your deployment
+If you test your deployment from the same server:
+- Go to a browser and go to URL: "http://localhost:8000/" to test if ODmapper is successfully deployed.
+- Go to a browser and go to URL: "http://localhost:5000/" to test if seqrepo-rest-service is successfully deployed.
+
+If you test your deployment from another server, please ensure that you have modified the "DJANGO_ALLOWED_HOSTS" in the ".env" file.
+Otherwise, please stop the docker compose. Then modify the .env file and run "docker compose up --build" again. Then open browser and go to URL: http://<your deployment server IP address>:8000/
+
+## TIPS
+Once you have built the containers, you do not need to build it again unless there are changes to your programs.
+To start the containers:
+```
+docker compose up
+```
+
+To start the containers in background:
+```
+docker compose up --detach
+```
+
+To check the logs:
+```
+docker compose logs
+```
+
+To login to the container
+```
+docker exec -it <container_name> sh
+```
+For example: 
+```
+docker exec -it odmapper_api-odmapper-postres-1 sh
 ```
