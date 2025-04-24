@@ -8,6 +8,12 @@ ODmapper has been packaged as docker containers.
 Please follow the instructions here: https://github.com/biocommons/biocommons.seqrepo
 Please ensure that the seqrepo directory is at /usr/local/share/seqrepo/
 
+If you setup seqrepo follow the instructions above, then you can skip this part.
+### Manual downloading of "seqrepo.tar.gz"
+1. Download seqrepo.tar.gz
+2. Extract the file "seqrepo.tar.gz" to "/usr/local/share/". It should appear as /usr/local/share/seqrepo/
+(Note: You need to ensure that you have read permission to "/usr/local/share/seqrepo/")
+
 ## Setting up ODmapper and the supporting docker instances
 ### Step 1: Navigate to odmapper_api/ folder
 ```
